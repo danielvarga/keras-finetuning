@@ -25,7 +25,9 @@ batch_size = 128
 nb_epoch = 10
 nb_phase_two_epoch = 10
 
-X, y, tags = dataset.dataset(sys.stdin, "data/", n)
+data_directory, = sys.argv[1:]
+
+X, y, tags = dataset.dataset(sys.stdin, data_directory, n)
 nb_classes = len(tags)
 
 

@@ -7,12 +7,12 @@ Structure your data like this:
 ```
 data/classname1/
 data/classname2/
-...
+```
 
 Run the training:
 
 ```
-find data -type f | python finetune.py data/
+find data -type f | python finetune.py data
 ```
 
 The standard output will provide information about the state of the training, and the current accuracy.

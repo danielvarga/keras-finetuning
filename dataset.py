@@ -19,6 +19,9 @@ def reverse_preprocess_input(x0):
 
 
 def dataset(f, in_prefix, n):
+    if not in_prefix.endswith("/"):
+        in_prefix = in_prefix + "/"
+
     d = defaultdict(list)
     for l in f:
         filename = l.strip("\n")
