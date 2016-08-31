@@ -1,4 +1,5 @@
 import sys
+import json
 
 import numpy as np
 from collections import defaultdict
@@ -8,15 +9,13 @@ from collections import defaultdict
 # https://github.com/tensorflow/tensorflow/issues/1541
 import scipy.misc
 
-from keras.applications.inception_v3 import InceptionV3
 from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Model
-from keras.layers import Dense, GlobalAveragePooling2D
+from keras.optimizers import SGD
 from keras import backend as K
 from keras.utils import np_utils
 
 import dataset
-
+import net
 
 np.random.seed(1337)
 
@@ -64,15 +63,20 @@ test_datagen = ImageDataGenerator(
     height_shift_range=0.0,
     horizontal_flip=False,
     vertical_flip=False)
-test_datagen.fit(X_test)
+test_datagen.fit(X_train)
 
 
 def evaluate(model, vis_filename=None):
     Y_pred = model.predict(X_test, batch_size=batch_size)
     y_pred = np.argmax(Y_pred, axis=1)
+
+    accuracy = float(np.sum(y_test==y_pred)) / len(y_test)
+    print "accuracy:", accuracy
+    
     confusion = np.zeros((nb_classes, nb_classes), dtype=np.int32)
     for (predicted_index, actual_index, image) in zip(y_pred, y_test, X_test):
         confusion[predicted_index, actual_index] += 1
+    
     print "rows are predicted classes, columns are actual classes"
     for predicted_index, predicted_tag in enumerate(tags):
         print predicted_tag[:7],
@@ -104,28 +108,8 @@ def evaluate(model, vis_filename=None):
         scipy.misc.imsave(vis_filename, vis_image)
 
 
-# create the base pre-trained model
-base_model = InceptionV3(weights='imagenet', include_top=False)
-
-# add a global spatial average pooling layer
-x = base_model.output
-x = GlobalAveragePooling2D()(x)
-# let's add a fully-connected layer
-x = Dense(1024, activation='relu')(x)
-# and a logistic layer
-predictions = Dense(nb_classes, activation='softmax')(x)
-
-# this is the model we will train
-model = Model(input=base_model.input, output=predictions)
-
-# first: train only the top layers (which were randomly initialized)
-# i.e. freeze all convolutional InceptionV3 layers
-for layer in base_model.layers:
-    layer.trainable = False
-
-# compile the model (should be done *after* setting layers to non-trainable)
+model = net.build_model(nb_classes)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=["accuracy"])
-
 
 # train the model on the new data for a few epochs
 
@@ -136,9 +120,9 @@ model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffl
             nb_val_samples=X_test.shape[0],
             )
 
-
 evaluate(model, "pretrain.png")
 
+net.save(model, tags, "model")
 
 # at this point, the top layers are well trained and we can start fine-tuning
 # convolutional layers from inception V3. We will freeze the bottom N layers
@@ -153,7 +137,6 @@ for layer in model.layers[172:]:
 
 # we need to recompile the model for these modifications to take effect
 # we use SGD with a low learning rate
-from keras.optimizers import SGD
 model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=["accuracy"])
 
 # we train our model again (this time fine-tuning the top 2 inception blocks
@@ -168,3 +151,5 @@ for i in range(10):
             )
 
     evaluate(model, str(i).zfill(3)+".png")
+
+    net.save(model, tags, "model")

@@ -2,17 +2,18 @@
 
 Based on the **Fine-tune InceptionV3 on a new set of classes** example in https://keras.io/applications/
 
-Structure your data like this:
+Structure your image files in the following directory hierarchy:
 
 ```
 data/classname1/
 data/classname2/
+...
 ```
 
 Run the training:
 
 ```
-find data -type f | python finetune.py data
+find data -type f | python train.py data
 ```
 
 The standard output will provide information about the state of the training, and the current accuracy.
