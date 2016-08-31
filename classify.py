@@ -1,3 +1,5 @@
+# This should be completely refactored, shares a lot of code with train.py
+
 import sys
 from collections import defaultdict
 import numpy as np
