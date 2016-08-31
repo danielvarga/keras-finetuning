@@ -22,8 +22,8 @@ np.random.seed(1337)
 
 n = 224
 batch_size = 128
-nb_epoch = 10
-nb_phase_two_epoch = 10
+nb_epoch = 20
+nb_phase_two_epoch = 20
 
 data_directory, = sys.argv[1:]
 
