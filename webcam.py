@@ -1,5 +1,6 @@
 import cv2
 import sys
+import os
 
 import numpy as np
 
@@ -14,18 +15,20 @@ import dataset
 
 n = 224
 
+model_prefix, = sys.argv[1:]
+
 print "loading neural network"
 model, tags = net.load("model")
 net.compile(model)
 print "done"
 
-print "compiling predictor function"
+print "compiling predictor function" # to avoid the delay during video capture.
 _ = model.predict(np.zeros((1, 3, n, n), dtype=np.float32), batch_size=1)
 print "done"
 
-
-cascPath = sys.argv[1]
-faceCascade = cv2.CascadeClassifier(cascPath)
+cascade_filename = "haarcascade_frontalface_default.xml"
+assert os.path.isfile(cascade_filename), "face detector model haarcascade_frontalface_default.xml must be in the current directory"
+faceCascade = cv2.CascadeClassifier(cascade_filename)
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 video_capture = cv2.VideoCapture(0)
