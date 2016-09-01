@@ -23,6 +23,9 @@ n = 224
 batch_size = 128
 nb_epoch = 20
 nb_phase_two_epoch = 20
+# Use heavy augmentation if you plan to use the model with the
+# accompanying webcam.py app, because webcam data is quite different from photos.
+heavy_augmentation = True
 
 data_directory, model_file_prefix = sys.argv[1:]
 
@@ -41,32 +44,36 @@ X_test  = X[train_size:]
 y_test  = y[train_size:]
 Y_test = np_utils.to_categorical(y_test, nb_classes)
 
-datagen = ImageDataGenerator(
-    featurewise_center=False,
-    samplewise_center=False,
-    featurewise_std_normalization=False,
-    samplewise_std_normalization=False,
-    zca_whitening=False,
-    rotation_range=0,
-    width_shift_range=0.125,
-    height_shift_range=0.125,
-    horizontal_flip=True,
-    vertical_flip=False)
+if heavy_augmentation:
+    datagen = ImageDataGenerator(
+        featurewise_center=False,
+        samplewise_center=False,
+        featurewise_std_normalization=False,
+        samplewise_std_normalization=False,
+        zca_whitening=False,
+        rotation_range=45,
+        width_shift_range=0.25,
+        height_shift_range=0.25,
+        horizontal_flip=True,
+        vertical_flip=False,
+        zoom_range=0.5,
+        channel_shift_range=0.5,
+        fill_mode='nearest')
+else:
+    datagen = ImageDataGenerator(
+        featurewise_center=False,
+        samplewise_center=False,
+        featurewise_std_normalization=False,
+        samplewise_std_normalization=False,
+        zca_whitening=False,
+        rotation_range=0,
+        width_shift_range=0.125,
+        height_shift_range=0.125,
+        horizontal_flip=True,
+        vertical_flip=False,
+        fill_mode='nearest')
+
 datagen.fit(X_train)
-
-test_datagen = ImageDataGenerator(
-    featurewise_center=False,
-    samplewise_center=False,
-    featurewise_std_normalization=False,
-    samplewise_std_normalization=False,
-    zca_whitening=False,
-    rotation_range=0,
-    width_shift_range=0.0,
-    height_shift_range=0.0,
-    horizontal_flip=False,
-    vertical_flip=False)
-test_datagen.fit(X_train)
-
 
 def evaluate(model, vis_filename=None):
     Y_pred = model.predict(X_test, batch_size=batch_size)
@@ -121,7 +128,7 @@ print "training the newly added dense layers"
 model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
             samples_per_epoch=X_train.shape[0],
             nb_epoch=nb_epoch,
-            validation_data=test_datagen.flow(X_test, Y_test, batch_size=batch_size),
+            validation_data=datagen.flow(X_test, Y_test, batch_size=batch_size),
             nb_val_samples=X_test.shape[0],
             )
 
@@ -154,7 +161,7 @@ for i in range(1,11):
     model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
             samples_per_epoch=X_train.shape[0],
             nb_epoch=nb_phase_two_epoch,
-            validation_data=test_datagen.flow(X_test, Y_test, batch_size=batch_size),
+            validation_data=datagen.flow(X_test, Y_test, batch_size=batch_size),
             nb_val_samples=X_test.shape[0],
             )
 

@@ -26,7 +26,10 @@ python train.py data_dir model
 ```
 
 The standard output provides information about the state of the training, and the current accuracy.
-(Accuracy is measured on a random 20% validation set.)
+Accuracy is measured on a random 20% validation set. During training, Keras outputs the accuracy on
+the augmented validation dataset (`val_acc`). After a training round, the validation accuracy
+on non-augmented data is printed.
+
 The files `000.png` `001.png` etc. give a visual confusion matrix about the progress of the training.
 `000.png` is created after the newly created dense layers were trained,
 and the rest during fine-tuning.
@@ -37,7 +40,7 @@ The model is saved in three files, named `model.h5`, `model.json`, `model-labels
 
 If you train the model with the labeled faces of your friends and relatives,
 you can test your classifier in a toy app.
-(OS X Photos users can find training data in the working directory of that application.)
+(OS X Photos users can find high quality cropped training data in the working directory of that application.)
 
 ```
 python webcam.py model
@@ -46,3 +49,7 @@ python webcam.py model
 This does face detection on the webcam stream, and tags the detected faces according to the neural model.
 It looks for the `model*` files in the current directory. The file `haarcascade_frontalface_default.xml`
 must also be there.
+
+Webcam data is quite different from photos, so to let the model generalize,
+set `heavy_augmentation = True` in `train.py`. For other applications,
+`heavy_augmentation = False` might be preferable.
