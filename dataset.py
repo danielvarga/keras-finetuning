@@ -44,10 +44,15 @@ def dataset(base_dir, n):
             processed_image_count += 1
             img = scipy.misc.imread(filename)
             height, width, chan = img.shape
-            assert chan==3
-            deviation = abs(float(height)/width-1.0)
-            if deviation>0.05:
+            assert chan == 3
+            aspect_ratio = float(max((height, width))) / min((height, width))
+            if aspect_ratio > 2:
                 continue
+            # We pick the largest center square.
+            centery = height // 2
+            centerx = width // 2
+            radius = min((centerx, centery))
+            img = img[centery-radius:centery+radius, centerx-radius:centerx+radius]
             img = scipy.misc.imresize(img, size=(n, n), interp='bilinear')
             X.append(img)
             y.append(class_index)
