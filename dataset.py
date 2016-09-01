@@ -1,4 +1,5 @@
 import sys
+import os
 from collections import defaultdict
 import numpy as np
 import scipy.misc
@@ -18,17 +19,16 @@ def reverse_preprocess_input(x0):
     return x
 
 
-def dataset(f, in_prefix, n):
-    if not in_prefix.endswith("/"):
-        in_prefix = in_prefix + "/"
-
+def dataset(base_dir, n):
     d = defaultdict(list)
-    for l in f:
-        filename = l.strip("\n")
-        assert filename.startswith(in_prefix)
-        cl = filename.lstrip(in_prefix)
-        cl = cl.split("/")[0]
-        d[cl].append(filename)
+    for root, subdirs, files in os.walk(base_dir):
+        for filename in files:
+            file_path = os.path.join(root, filename)
+            assert file_path.startswith(base_dir)
+            suffix = file_path[len(base_dir):]
+            suffix = suffix.lstrip("/")
+            label = suffix.split("/")[0]
+            d[label].append(file_path)
 
     tags = sorted(d.keys())
 
@@ -57,15 +57,16 @@ def dataset(f, in_prefix, n):
     X = np.array(X).astype(np.float32)
     X = X.transpose((0, 3, 1, 2))
     X = preprocess_input(X)
-    print "X.shape", X.shape
     y = np.array(y)
 
     perm = np.random.permutation(len(y))
     X = X[perm]
     y = y[perm]
 
+    print "classes:"
     for class_index, class_name in enumerate(tags):
         print class_name, sum(y==class_index)
+    print
 
     return X, y, tags
 

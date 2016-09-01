@@ -28,7 +28,7 @@ data_directory, model_file_prefix = sys.argv[1:]
 
 print "loading dataset"
 
-X, y, tags = dataset.dataset(sys.stdin, data_directory, n)
+X, y, tags = dataset.dataset(data_directory, n)
 nb_classes = len(tags)
 
 

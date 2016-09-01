@@ -21,7 +21,7 @@ batch_size = 128
 
 data_directory, = sys.argv[1:]
 
-X, y, tags = dataset.dataset(sys.stdin, data_directory, n)
+X, y, tags = dataset.dataset(data_directory, n)
 nb_classes = len(tags)
 
 sample_count = len(y)
