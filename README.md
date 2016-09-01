@@ -11,8 +11,8 @@ Very latest (>=1.0.8) Keras, scipy. opencv2 is only used in the toy webcam app.
 Structure your image files in the following directory hierarchy:
 
 ```
-data/classname1/*.*
-data/classname2/*.*
+data_dir/classname1/*.*
+data_dir/classname2/*.*
 ...
 ```
 
@@ -21,12 +21,14 @@ It depends on the domain, but a few hundred images per class can already give go
 Run the training:
 
 ```
-find data -type f | python train.py data
+find data_dir -type f | python train.py data_dir model
 ```
 
 The standard output will provide information about the state of the training, and the current accuracy.
 (Accuracy is measured on a random 20% validation set.)
 The files `000.png` `001.png` etc give a visual confusion matrix about the progress of the training.
+`000.png` is created after the newly created dense layers were trained,
+and the rest during fine-tuning.
 
 The model is saved in three files, named `model.h5`, `model.json`, `model-labels.json`.
 
@@ -37,8 +39,9 @@ you can test your classifier in a toy app.
 (OS X Photos users can find training data in the working directory of that application.)
 
 ```
-python webcam.py haarcascade_frontalface_default.xml
+python webcam.py model
 ```
 
 This does face detection on the webcam stream, and tags the detected faces according to the neural model.
-It looks for the `model*` files in the current directory.
+It looks for the `model*` files in the current directory. The file `haarcascade_frontalface_default.xml`
+must also be there.

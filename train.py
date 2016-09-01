@@ -24,7 +24,9 @@ batch_size = 128
 nb_epoch = 20
 nb_phase_two_epoch = 20
 
-data_directory, = sys.argv[1:]
+data_directory, model_file_prefix = sys.argv[1:]
+
+print "loading dataset"
 
 X, y, tags = dataset.dataset(sys.stdin, data_directory, n)
 nb_classes = len(tags)
@@ -107,11 +109,14 @@ def evaluate(model, vis_filename=None):
         vis_image[:, ::image_size * bucket_size] = 0
         scipy.misc.imsave(vis_filename, vis_image)
 
+print "loading original inception model"
 
 model = net.build_model(nb_classes)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=["accuracy"])
 
 # train the model on the new data for a few epochs
+
+print "training the newly added dense layers"
 
 model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
             samples_per_epoch=X_train.shape[0],
@@ -120,9 +125,9 @@ model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffl
             nb_val_samples=X_test.shape[0],
             )
 
-evaluate(model, "pretrain.png")
+evaluate(model, "000.png")
 
-net.save(model, tags, "model")
+net.save(model, tags, model_file_prefix)
 
 # at this point, the top layers are well trained and we can start fine-tuning
 # convolutional layers from inception V3. We will freeze the bottom N layers
@@ -142,7 +147,10 @@ model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossent
 # we train our model again (this time fine-tuning the top 2 inception blocks
 # alongside the top Dense layers
 
-for i in range(10):
+print "fine-tuning top 2 inception blocks alongside the top dense layers"
+
+for i in range(1,11):
+    print "mega-epoch %d/10" % i
     model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
             samples_per_epoch=X_train.shape[0],
             nb_epoch=nb_phase_two_epoch,
@@ -152,4 +160,4 @@ for i in range(10):
 
     evaluate(model, str(i).zfill(3)+".png")
 
-    net.save(model, tags, "model")
+    net.save(model, tags, model_file_prefix)
