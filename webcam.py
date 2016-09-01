@@ -14,10 +14,15 @@ import dataset
 
 n = 224
 
+print "loading neural network"
 model, tags = net.load("model")
 net.compile(model)
+print "done"
 
-print "neural network was set up"
+print "compiling predictor function"
+_ = model.predict(np.zeros((1, 3, n, n), dtype=np.float32), batch_size=1)
+print "done"
+
 
 cascPath = sys.argv[1]
 faceCascade = cv2.CascadeClassifier(cascPath)
@@ -49,6 +54,7 @@ while True:
             square = np.expand_dims(square, axis=0)
             square = square.transpose((0, 3, 1, 2))
             square = dataset.preprocess_input(square)
+
             probabilities = model.predict(square, batch_size=1).flatten()
             prediction = tags[np.argmax(probabilities)]
             print prediction + "\t" + "\t".join(map(lambda x: "%.2f" % x, probabilities))
