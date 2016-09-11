@@ -18,7 +18,7 @@ n = 224
 model_prefix, = sys.argv[1:]
 
 print "loading neural network"
-model, tags = net.load("model")
+model, tags = net.load(model_prefix)
 net.compile(model)
 print "done"
 
