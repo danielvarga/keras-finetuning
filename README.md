@@ -40,7 +40,6 @@ The model is saved in three files, named `model.h5`, `model.json`, `model-labels
 
 If you train the model with the labeled faces of your friends and relatives,
 you can test your classifier in a toy app.
-(OS X Photos users can find high quality cropped training data in the working directory of that application.)
 
 ```
 python webcam.py model
@@ -53,3 +52,45 @@ must also be there.
 Webcam data is quite different from photos, so to let the model generalize,
 set `heavy_augmentation = True` in `train.py`. For other applications,
 `heavy_augmentation = False` might be preferable.
+
+
+## Apple Photos: a great source of training data
+
+OS X Photos users can find high quality cropped training data in the Photos Libraries of that application.
+[Mihály Köles](https://github.com/nyuwec) and I have reverse engineered the database format of Photos,
+and the result is an easy-to-use tool for building training datasets from Photos Libraries:
+
+```
+bash collect-apple-photos.sh "$HOME/Pictures/Photos Library.photoslibrary" photos_library_dataset
+```
+
+The output of the above script is the `photos_library_dataset` directory
+that has exactly the right layout to be used as input for the training script:
+
+```
+python train.py photos_library_dataset model
+python webcam.py model
+```
+
+Of course, very small label classes won't generalize well to unseen data. It might make sense to
+consolidate their contents into the generic `unknown` label class, which contains faces not yet
+labeled by Apple Photos:
+
+```
+mv photos_library_dataset/too_small_class/* photos_library_dataset/unknown
+rmdir photos_library_dataset/too_small_class
+```
+
+If you simply remove the `unknown` directory from the dataset, that leads to a "closed world"
+model that assumes that everyone appearing on your webcam stream has his or her Photos label.
+
+
+### The Photos Library data layout
+
+For those interested, here's a bit more information about the Photos data layout. (Look into the
+source code of `collect-apple-photos.sh` for all relevant detail.)
+`*.photoslibrary/resources/modelresources/` contains the manually and semi-automatically tagged
+faces cropped from your photos, and the `*.photoslibrary/database/Person.db` and
+`*.photoslibrary/database/ImageProxies.apdb` sqlite3 databases describe the correspondence
+between persons and cropped photos. The relevant tables for our purposes are
+`Person.RKFace`, `Person.RKPerson`, and `ImageProxies.RKModelResource`.
