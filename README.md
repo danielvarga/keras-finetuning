@@ -4,7 +4,8 @@ Based on the **Fine-tune InceptionV3 on a new set of classes** example in https:
 
 ## Dependencies
 
-Very latest (>=1.0.8) Keras, scipy. opencv2 is only used in the toy webcam app.
+Very latest (>=1.0.8 from source) Keras, scipy, pillow. opencv2 is only used in the toy webcam app.
+See [osx-install.sh](osx-install.sh) for installation instructions on OS X.
 
 ## Training
 
@@ -54,11 +55,12 @@ set `heavy_augmentation = True` in `train.py`. For other applications,
 `heavy_augmentation = False` might be preferable.
 
 
-## Apple Photos: a great source of training data
+## Apple Photos: a great source of training data for face recognition
 
-OS X Photos users can find high quality cropped training data in the Photos Libraries of that application.
+OS X Photos users can find high quality training data in the Photos Libraries of that application.
 [Mihály Köles](https://github.com/nyuwec) and I have reverse engineered the database format of Photos,
-and the result is an easy-to-use tool for building training datasets from Photos Libraries:
+and the result is an easy-to-use tool for building your personalized face recognition
+training datasets from Photos Libraries:
 
 ```
 bash collect-apple-photos.sh "$HOME/Pictures/Photos Library.photoslibrary" photos_library_dataset
@@ -81,7 +83,7 @@ mv photos_library_dataset/too_small_class/* photos_library_dataset/unknown
 rmdir photos_library_dataset/too_small_class
 ```
 
-If you simply remove the `unknown` directory from the dataset, that leads to a "closed world"
+If you simply remove the `unknown` directory from the dataset before training, that leads to a "closed world"
 model that assumes that everyone appearing on your webcam stream has his or her Photos label.
 
 
