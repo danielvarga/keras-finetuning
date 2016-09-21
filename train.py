@@ -20,9 +20,9 @@ import net
 np.random.seed(1337)
 
 n = 224
-batch_size = 128
-nb_epoch = 20
-nb_phase_two_epoch = 20
+batch_size = 64
+nb_epoch = 0
+nb_phase_two_epoch = 200
 # Use heavy augmentation if you plan to use the model with the
 # accompanying webcam.py app, because webcam data is quite different from photos.
 heavy_augmentation = True
@@ -119,42 +119,13 @@ def evaluate(model, vis_filename=None):
 print "loading original inception model"
 
 model = net.build_model(nb_classes)
+
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=["accuracy"])
-
-# train the model on the new data for a few epochs
-
-print "training the newly added dense layers"
-
-model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size, shuffle=True),
-            samples_per_epoch=X_train.shape[0],
-            nb_epoch=nb_epoch,
-            validation_data=datagen.flow(X_test, Y_test, batch_size=batch_size),
-            nb_val_samples=X_test.shape[0],
-            )
-
-evaluate(model, "000.png")
-
-net.save(model, tags, model_file_prefix)
-
-# at this point, the top layers are well trained and we can start fine-tuning
-# convolutional layers from inception V3. We will freeze the bottom N layers
-# and train the remaining top layers.
-
-# we chose to train the top 2 inception blocks, i.e. we will freeze
-# the first 172 layers and unfreeze the rest:
-for layer in model.layers[:172]:
-   layer.trainable = False
-for layer in model.layers[172:]:
-   layer.trainable = True
-
-# we need to recompile the model for these modifications to take effect
-# we use SGD with a low learning rate
-model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=["accuracy"])
 
 # we train our model again (this time fine-tuning the top 2 inception blocks
 # alongside the top Dense layers
 
-print "fine-tuning top 2 inception blocks alongside the top dense layers"
+print "training inception network from scratch"
 
 for i in range(1,11):
     print "mega-epoch %d/10" % i

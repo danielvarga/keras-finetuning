@@ -8,7 +8,7 @@ from keras.layers import Dense, GlobalAveragePooling2D
 
 # create the base pre-trained model
 def build_model(nb_classes):
-    base_model = InceptionV3(weights='imagenet', include_top=False)
+    base_model = InceptionV3(weights=None, include_top=False)
 
     # add a global spatial average pooling layer
     x = base_model.output
@@ -20,11 +20,6 @@ def build_model(nb_classes):
 
     # this is the model we will train
     model = Model(input=base_model.input, output=predictions)
-
-    # first: train only the top layers (which were randomly initialized)
-    # i.e. freeze all convolutional InceptionV3 layers
-    for layer in base_model.layers:
-        layer.trainable = False
 
     # compile the model (should be done *after* setting layers to non-trainable)
     print "starting model compile"
